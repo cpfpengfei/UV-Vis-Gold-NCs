@@ -5,7 +5,7 @@ import random
 import pickle
 
 from sklearn.model_selection import train_test_split, KFold, cross_val_score
-from sklearn.metrics import mean_absolute_error, r2_score
+from sklearn.metrics import mean_absolute_error
 
 import tensorflow as tf
 physical_devices = tf.config.list_physical_devices('GPU')
@@ -138,13 +138,11 @@ Y_pred_actual = revert_Y_reverse(Y_pred, multiply_by, added) # revert back UV Vi
 print("Y_pred_actual shape:", Y_pred_actual.shape)
 
 MAE = mean_absolute_error(Y_test, Y_pred)
-R2 = r2_score(Y_test, Y_pred)
 _, mean_R, _, _ = get_pearson_R(Y_test_actual, Y_pred_actual)
 
 MODEL_PERFORMANCES["1DCNN"].append(MAE)
-MODEL_PERFORMANCES["1DCNN"].append(R2)
 MODEL_PERFORMANCES["1DCNN"].append(mean_R)
-print("1DCNN Test MAE:", MAE, "| Test R2:", R2, "| Test R:", mean_R)
+print("1DCNN Test MAE:", MAE, "| Test R:", mean_R)
 model.save(f"Rev_1DCNN_1")
 
 predicted_UVVis = {i : Y_pred_actual[i] for i in range(len(X_test))}
@@ -167,13 +165,11 @@ Y_pred = model.predict(X_test)
 Y_pred_actual = revert_Y_reverse(Y_pred, multiply_by, added) # revert back UV Vis
 
 MAE = mean_absolute_error(Y_test, Y_pred)
-R2 = r2_score(Y_test, Y_pred)
 _, mean_R, _, _ = get_pearson_R(Y_test_actual, Y_pred_actual)
 
 MODEL_PERFORMANCES["LSTM"].append(MAE)
-MODEL_PERFORMANCES["LSTM"].append(R2)
 MODEL_PERFORMANCES["LSTM"].append(mean_R)
-print("LSTM Test MAE:", MAE, "| Test R2:", R2, "| Test R:", mean_R)
+print("LSTM Test MAE:", MAE, "| Test R:", mean_R)
 model.save(f"Rev_LSTM_1")
 
 predicted_UVVis = {i : Y_pred_actual[i] for i in range(len(X_test))}
@@ -197,13 +193,11 @@ Y_pred = model.predict(X_test)
 Y_pred_actual = revert_Y_reverse(Y_pred, multiply_by, added) # revert back UV Vis
 
 MAE = mean_absolute_error(Y_test, Y_pred)
-R2 = r2_score(Y_test, Y_pred)
 _, mean_R, _, _ = get_pearson_R(Y_test_actual, Y_pred_actual)
 
 MODEL_PERFORMANCES["GRU"].append(MAE)
-MODEL_PERFORMANCES["GRU"].append(R2)
 MODEL_PERFORMANCES["GRU"].append(mean_R)
-print("GRU Test MAE:", MAE, "| Test R2:", R2, "| Test R:", mean_R)
+print("GRU Test MAE:", MAE, "| Test R:", mean_R)
 model.save(f"Rev_GRU_1")
 
 predicted_UVVis = {i : Y_pred_actual[i] for i in range(len(X_test))}
@@ -226,7 +220,6 @@ for i in range(1, 227//5): # increment of 5 each time
 partition_sizes.append(227)
 
 MAE_list = []
-R2_list = []
 R_list = []
 
 for train_size in partition_sizes:
@@ -252,11 +245,9 @@ for train_size in partition_sizes:
     Y_test_actual = revert_Y_reverse(Y_test, multiply_by, added) # revert back UV Vis
 
     MAE = mean_absolute_error(Y_test, Y_pred)
-    R2 = r2_score(Y_test, Y_pred)
     _, mean_R, _, _ = get_pearson_R(Y_test_actual, Y_pred_actual)
 
     MAE_list.append(MAE)
-    R2_list.append(R2)
     R_list.append(mean_R)
     del model
 
@@ -264,7 +255,6 @@ train_set_vary_df = {
     "partition_sizes" : partition_sizes,
     "MAE" : MAE_list,
     "R" : R_list,
-    "R2" : R2_list
 }
 pd.DataFrame.from_dict(train_set_vary_df).to_csv("Reverse 1D CNN training set size results.csv")
 print("")

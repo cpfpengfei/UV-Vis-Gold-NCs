@@ -5,7 +5,7 @@ import random
 import pickle
 
 from sklearn.model_selection import train_test_split, KFold, cross_val_score
-from sklearn.metrics import mean_absolute_error, r2_score
+from sklearn.metrics import mean_absolute_error
 
 import tensorflow as tf
 physical_devices = tf.config.list_physical_devices('GPU')
@@ -94,8 +94,8 @@ MODEL_PERFORMANCES = {
     "GRU" : []
 }
 
-n_input = 751 # Total number of wavelengths in UV-VIS pattern
-n_classes = 51 # Number of gold nanocluster classes
+n_input = 751 # Wavelengths in UV-Vis
+n_classes = 51 # Gold nanocluster classes
 EPOCHS = 300
 BATCH_SIZE = 10
 
@@ -116,11 +116,9 @@ model.fit(X_train, Y_train,
             validation_data=(X_test, Y_test))
 
 Y_pred = model.predict(X_test)
-R2 = r2_score(Y_test, Y_pred)
 MAE = mean_absolute_error(Y_test, Y_pred)
 MODEL_PERFORMANCES["1DCNN"].append(MAE)
-MODEL_PERFORMANCES["1DCNN"].append(R2)
-print("1DCNN Test R2:", R2, "| Test MAE:", MAE)
+print("1DCNN Test MAE:", MAE)
 model.save(f"1DCNN_0")
 
 predicted_pie_chart_df = {i : Y_pred[i] for i in range(len(X_test))}
@@ -139,11 +137,9 @@ model.fit(X_train, Y_train,
             validation_data=(X_test, Y_test))
 
 Y_pred = model.predict(X_test)
-R2 = r2_score(Y_test, Y_pred)
 MAE = mean_absolute_error(Y_test, Y_pred)
 MODEL_PERFORMANCES["LSTM"].append(MAE)
-MODEL_PERFORMANCES["LSTM"].append(R2)
-print("LSTM Test R2:", R2, "| Test MAE:", MAE)
+print("LSTM Test MAE:", MAE)
 model.save(f"LSTM_0")
 
 predicted_pie_chart_df = {i : Y_pred[i] for i in range(len(X_test))}
@@ -162,11 +158,9 @@ model.fit(X_train, Y_train,
             validation_data=(X_test, Y_test))
 
 Y_pred = model.predict(X_test)
-R2 = r2_score(Y_test, Y_pred)
 MAE = mean_absolute_error(Y_test, Y_pred)
 MODEL_PERFORMANCES["GRU"].append(MAE)
-MODEL_PERFORMANCES["GRU"].append(R2)
-print("GRU Test R2:", R2, "| Test MAE:", MAE)
+print("GRU Test MAE:", MAE)
 model.save(f"GRU_0")
 
 predicted_pie_chart_df = {i : Y_pred[i] for i in range(len(X_test))}
@@ -191,7 +185,6 @@ for i in range(1, 227//5): # increment of 5 each time
 partition_sizes.append(227)
 
 MAE_list = []
-R2_list = []
 
 for train_size in partition_sizes:
     current_X_train = X_train[:train_size]
@@ -212,16 +205,13 @@ for train_size in partition_sizes:
                 validation_data=(X_test, Y_test))
 
     Y_pred = model.predict(X_test)
-    R2 = r2_score(Y_test, Y_pred)
     MAE = mean_absolute_error(Y_test, Y_pred)
     MAE_list.append(MAE)
-    R2_list.append(R2)
     del model
 
 train_set_vary_df = {
     "partition_sizes" : partition_sizes,
     "MAE" : MAE_list,
-    "R2" : R2_list
 }
 pd.DataFrame.from_dict(train_set_vary_df).to_csv("Forward 1D CNN training set size results.csv")
 print("")

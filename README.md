@@ -7,7 +7,7 @@ UV-Vis absorption spectrometry has been widely utilized in identifying the compo
 | ------------- | ------------------------------ |
 | `uv_data_processing.py` | Data preprocessing for UV-Vis and composition data |
 | `forward_hopt_full.py`, `reverse_hopt_full.py` | Hyperparameters tuning (Bayesian optimization with Gaussian process) for 1D CNN in forward and reverse predictions respectively |
-| `forward_lstm_gru_hopt` | Hyperparameters tuning for LSTM and GRU models, argument: `LSTM` or `GRU`|
+| `forward_lstm_gru_hopt.py` | Hyperparameters tuning for LSTM and GRU models, argument: `LSTM` or `GRU`|
 | `run_forward_final.py`, `run_reverse_final.py`| Model evaluations and predictions among 3 models and with training set size increment |
 | `Demo / ` | In the works |
 
