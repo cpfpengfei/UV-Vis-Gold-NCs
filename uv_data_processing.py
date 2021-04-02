@@ -9,7 +9,7 @@ np.random.seed(42)
 # preprocessing features labels 
 def get_features_labels():
     # load training data 
-    full_df = pd.read_csv('data/abundance.csv')
+    full_df = pd.read_csv('data/abundance_new.csv')
 
     # modify the intensity according to the Au number real_intensity = intensity/Au_num
     label_df = full_df.iloc[:, 6:]
@@ -20,7 +20,6 @@ def get_features_labels():
     for i in range(0, modified_label_df.shape[1]):
         for Au_i in range(modified_label_df.shape[0]):
             modified_label_df.iloc[Au_i, i] = label_df.iloc[Au_i, i]
-            
     # Convert label values into sum = 1
     for i in range(modified_label_df.shape[1]):
         sum_i = modified_label_df.iloc[:, i].sum()
@@ -29,11 +28,11 @@ def get_features_labels():
     label_processed_df = modified_label_df
 
     # Preprocess feature data: UV-Vis spectrum
-    spectrum_df = pd.read_csv("data/uv.csv")
+    spectrum_df = pd.read_csv("data/uv_new.csv")
 
     # only take spectrum from 350 nm to 1100 nm
     x_feature = spectrum_df.iloc[151:, 1:254]
-    x_feature = x_feature.astype(float) # enforce every feature to be float 
+    x_feature = x_feature.astype(float)
 
     # finalise features and labels for forward 
     features = x_feature.values.transpose()

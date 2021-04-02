@@ -52,9 +52,9 @@ def cnn_model(n_input, n_classes, filter1, filter2, filter3, learning_rate):
     return model 
 
 # Set up dimensions 
-dim_filter1 = Categorical(categories=list(np.linspace(16,200,20, dtype=np.int64)), name= "filter1")
-dim_filter2 = Categorical(categories=list(np.linspace(16,200,20, dtype=np.int64)), name = "filter2")
-dim_filter3 = Categorical(categories=list(np.linspace(16,200,20, dtype=np.int64)),  name= "filter3")
+dim_filter1 = Integer(low = 16, high = 200, name='filter1', dtype = int)
+dim_filter2 = Integer(low = 16, high = 200, name='filter2', dtype = int)
+dim_filter3 = Integer(low = 16, high = 200, name='filter3', dtype = int)
 dim_learning_rate = Real(low=1e-4, high=1e-2, prior='log-uniform', name='learning_rate')
 
 dimensions = [dim_filter1,

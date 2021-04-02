@@ -20,6 +20,8 @@ tf.random.set_seed(42)
 
 from uv_data_processing import *
 
+CURRENT_DATE = date.today().strftime('%y%m%d')
+
 ##############################################
 
 def get_pearson_R(Y_test, Y_pred):
@@ -45,43 +47,43 @@ def cnn_model(n_input, n_classes, filter1, filter2, filter3, learning_rate):
                  metrics = ['mae'])
     return model 
 
-def lstm_model(n_input, n_classes, dropout = 0):
+def lstm_model(n_input, n_classes, layer1, layer2, layer3, layer4, dropout, learning_rate):
     model = Sequential()
-    model.add(LSTM(100, return_sequences=True, input_shape=(n_input,1)))
+    model.add(LSTM(layer1, return_sequences=True, input_shape=(n_input,1)))
     if dropout != 0:
         model.add(Dropout(dropout))
-    model.add(LSTM(50, return_sequences=True))
+    model.add(LSTM(layer2, return_sequences=True))
     if dropout != 0:
         model.add(Dropout(dropout))
-    model.add(LSTM(50, return_sequences=True))
+    model.add(LSTM(layer3, return_sequences=True))
     if dropout != 0:
         model.add(Dropout(dropout))
-    model.add(LSTM(50, return_sequences=False))
+    model.add(LSTM(layer4, return_sequences=False))
     if dropout != 0:
         model.add(Dropout(dropout))
     model.add(Dense(n_classes, activation = "sigmoid")) # sigmoid for non sum 1
-    optimizer = K.optimizers.Adam()
+    optimizer = K.optimizers.Adam(lr = learning_rate)
     model.compile(loss = 'mean_absolute_error',
                  optimizer = optimizer,
                  metrics = ['mae'])
     return model 
 
-def gru_model(n_input, n_classes, dropout = 0):
+def gru_model(n_input, n_classes, layer1, layer2, layer3, layer4, dropout, learning_rate):
     model = Sequential()
-    model.add(GRU(100, return_sequences=True, input_shape=(n_input,1)))
+    model.add(GRU(layer1, return_sequences=True, input_shape=(n_input,1)))
     if dropout != 0:
         model.add(Dropout(dropout))
-    model.add(GRU(50, return_sequences=True))
+    model.add(GRU(layer2, return_sequences=True))
     if dropout != 0:
         model.add(Dropout(dropout))
-    model.add(GRU(50, return_sequences=True))
+    model.add(GRU(layer3, return_sequences=True))
     if dropout != 0:
         model.add(Dropout(dropout))
-    model.add(GRU(50, return_sequences=False))
+    model.add(GRU(layer4, return_sequences=False))
     if dropout != 0:
         model.add(Dropout(dropout))
     model.add(Dense(n_classes, activation = "sigmoid")) # sigmoid for non sum 1
-    optimizer = K.optimizers.Adam()
+    optimizer = K.optimizers.Adam(lr = learning_rate)
     model.compile(loss = 'mean_absolute_error',
                  optimizer = optimizer,
                  metrics = ['mae'])
@@ -101,7 +103,7 @@ print(X_train.shape, Y_train.shape, X_test.shape, Y_test.shape)
 
 Y_test_actual = revert_Y_reverse(Y_test, multiply_by, added) # revert back UV Vis
 actual_UVvis = {i : Y_test_actual[i] for i in range(len(X_test))}
-pd.DataFrame.from_dict(actual_UVvis).to_csv("Reverse Actual UV-Vis Test Sample.csv")
+pd.DataFrame.from_dict(actual_UVvis).to_csv(f"Reverse Actual UV-Vis Test Sample_{CURRENT_DATE}.csv")
 
 MODEL_PERFORMANCES = {
     "1DCNN" : [],
@@ -114,8 +116,13 @@ n_classes = 751 # Total wavelengths in UV-VIS pattern
 EPOCHS = 300
 BATCH_SIZE = 10
 
-hopt_results = pd.read_csv("Reverse_hopt_results_210205.csv")
-hyperparams = list(hopt_results.nsmallest(1, "MAE").values[0])[1:]
+cnn_hopt_results = pd.read_csv("FINAL_MODELS_STORE/CNN_reverse_hopt_results_210205.csv")
+cnn_hyperparams = list(cnn_hopt_results.nsmallest(1, "MAE").values[0])[1:]
+lstm_hopt_results = pd.read_csv("FINAL_MODELS_STORE/LSTM_reverse_hopt_results_210401.csv")
+lstm_hyperparams = list(lstm_hopt_results.nsmallest(1, "MAE").values[0])[1:]
+gru_hopt_results = pd.read_csv("FINAL_MODELS_STORE/GRU_reverse_hopt_results_210401.csv")
+gru_hyperparams = list(gru_hopt_results.nsmallest(1, "MAE").values[0])[1:]
+
 print("1D CNN HYPERPARAMS: ", hyperparams)
 print("")
 
@@ -146,7 +153,7 @@ print("1DCNN Test MAE:", MAE, "| Test R:", mean_R)
 model.save(f"Rev_1DCNN_1")
 
 predicted_UVVis = {i : Y_pred_actual[i] for i in range(len(X_test))}
-pd.DataFrame.from_dict(predicted_UVVis).to_csv("Reverse 1D CNN Predicted UV-Vis Test Sample.csv")
+pd.DataFrame.from_dict(predicted_UVVis).to_csv(f"Reverse 1D CNN Predicted UV-Vis Test Sample_{CURRENT_DATE}.csv")
 
 print("SAVED 1D CNN MODEL + PERFORMANCE + TEST PREDICTIONS ...")
 print("")
@@ -154,7 +161,13 @@ del model
 
 print("RUNNING LSTM MODEL...")
 print("")
-model = lstm_model(n_input, n_classes)
+model = lstm_model(n_input, n_classes, 
+                layer1 = int(lstm_hyperparams[0]), 
+                layer2 = int(lstm_hyperparams[1]), 
+                layer3 = int(lstm_hyperparams[2]), 
+                layer4 = int(lstm_hyperparams[3]), 
+                dropout = lstm_hyperparams[4],
+                learning_rate = lstm_hyperparams[5])
 model.fit(X_train, Y_train,
             batch_size= BATCH_SIZE, 
             epochs= EPOCHS, 
@@ -173,7 +186,7 @@ print("LSTM Test MAE:", MAE, "| Test R:", mean_R)
 model.save(f"Rev_LSTM_1")
 
 predicted_UVVis = {i : Y_pred_actual[i] for i in range(len(X_test))}
-pd.DataFrame.from_dict(predicted_UVVis).to_csv("Reverse LSTM Predicted UV-Vis Test Sample.csv")
+pd.DataFrame.from_dict(predicted_UVVis).to_csv(f"Reverse LSTM Predicted UV-Vis Test Sample_{CURRENT_DATE}.csv")
 
 print("SAVED LSTM MODEL + PERFORMANCE + TEST PREDICTIONS ...")
 print("")
@@ -182,7 +195,13 @@ del model
 
 print("RUNNING GRU MODEL...")
 print("")
-model = gru_model(n_input, n_classes)
+model = gru_model(n_input, n_classes, 
+                layer1 = int(gru_hyperparams[0]), 
+                layer2 = int(gru_hyperparams[1]), 
+                layer3 = int(gru_hyperparams[2]), 
+                layer4 = int(gru_hyperparams[3]), 
+                dropout = gru_hyperparams[4],
+                learning_rate = gru_hyperparams[5])
 model.fit(X_train, Y_train,
             batch_size= BATCH_SIZE, 
             epochs= EPOCHS, 
@@ -201,13 +220,13 @@ print("GRU Test MAE:", MAE, "| Test R:", mean_R)
 model.save(f"Rev_GRU_1")
 
 predicted_UVVis = {i : Y_pred_actual[i] for i in range(len(X_test))}
-pd.DataFrame.from_dict(predicted_UVVis).to_csv("Reverse GRU Predicted UV-Vis Test Sample.csv")
+pd.DataFrame.from_dict(predicted_UVVis).to_csv(f"Reverse GRU Predicted UV-Vis Test Sample_{CURRENT_DATE}.csv")
 
 print("SAVED GRU MODEL + PERFORMANCE + TEST PREDICTIONS ...")
 print("")
 del model 
 
-pd.DataFrame.from_dict(MODEL_PERFORMANCES).to_csv("Reverse Model Performances (Fixed Test).csv")
+pd.DataFrame.from_dict(MODEL_PERFORMANCES).to_csv(f"Reverse Model Performances (Fixed Test)_{CURRENT_DATE}.csv")
 print("SAVED ALL PERFORMANCES TO CSV...")
 print("")
 
@@ -256,7 +275,7 @@ train_set_vary_df = {
     "MAE" : MAE_list,
     "R" : R_list,
 }
-pd.DataFrame.from_dict(train_set_vary_df).to_csv("Reverse 1D CNN training set size results.csv")
+pd.DataFrame.from_dict(train_set_vary_df).to_csv(f"Reverse 1D CNN training set size results_{CURRENT_DATE}.csv")
 print("")
 print("EVERYTHING DONE!")
 print("#################################")
